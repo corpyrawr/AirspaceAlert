@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { INotifier, Notifier } from './notifier';
+import { INotifier, Notifier } from './notifiers';
 import { Logger } from '../utils/logger';
 
 export interface ITelegramNotifier extends INotifier {
@@ -36,16 +36,16 @@ export class TelegramNotifier implements ITelegramNotifier {
           message_thread_id: this.message_thread_id,
           text: data.message,
         });
-        console.info(`Telegram message sent: ${response.data.ok}`);
+        console.info(`Telegram message sent: ${response.data.ok} msg: ${data.message.substring(0,25)}...`, 'telegram-notifier');
       } else {
         const response = await axios.post(url, {
           chat_id: this.chat_id,
           text: data.message,
         });
-        this.logger.info(`Telegram message sent: ${response.data.ok}`, 'telegram-notifier');
+        this.logger.info(`Telegram message sent: ${response.data.ok} msg: ${data.message.substring(0,25)}...`, 'telegram-notifier');
       }
     } catch (error) {
-      this.logger.error(`Error sending message to Telegram: ${error}`, 'telegram-notifier');
+      this.logger.error(`Error sending message to Telegram: ${error} msg: ${data.message.substring(0,25)}...`, 'telegram-notifier');
     }
   }
 }

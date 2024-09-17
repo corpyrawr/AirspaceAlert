@@ -2,27 +2,35 @@
 import { loadConfig } from './utils/config';
 import { EventMonitor } from './event-monitor';
 import { Logger } from './utils/logger';
+import { Tar1090 } from './data-sources/tar1090';
+import { Radar } from './radar';
 
 
-var pjson = require('../package.json');
 
 async function main() {
+    const pjson = require('../package.json');
     const config = loadConfig();
     const logger = new Logger(config);
 
     logger.info(`==================== ${pjson.displayName} ====================`, "index");
     logger.info(`version: ${pjson.version}`, "index");
     logger.info(`author: ${pjson.author}`, "index");
-    const eventMonitor = new EventMonitor(config, logger);
     logger.info(`- tar1090 Base URL: ${config.data_source.base}`, "index")
     logger.info(`- Refresh Interval: ${config.refresh_interval} seconds`, "index")
     logger.info("=======================================================", "index");
     logger.info("Monitoring...", "index");
 
+    const eventMonitor = new EventMonitor(config, logger);
     eventMonitor.monitorEvents();
     setInterval(() => {
         eventMonitor.monitorEvents();
-    }, eventMonitor.getRefreshInterval())
+
+    }, config.refresh_interval * 1000)
 }
+
+async function loop(){
+    
+}
+
 
 main().catch(console.error);

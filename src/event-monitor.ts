@@ -1,91 +1,104 @@
-//import { loggers, Logger, transports, format } from "winston";
-
-import { Config } from './utils/config';
 import { Tar1090 } from './data-sources/tar1090';
-import { Radar } from './radar';
 import { ITelegramNotifier, TelegramNotifier } from './notifiers/telegram';
+import { Radar } from './radar';
+import { IRuleEval, RuleEval } from './rules/eval';
+import { Rule } from './rules/rules';
+import { ITriggerNotifier, ITriggerResults, Trigger } from './triggers';
+import { IConfig, IConfig_Notifier, IConfig_Template } from './utils/config';
 import { Logger } from './utils/logger'
-import { Rule, IRule, Rules } from './utils/rules';
-import { ITemplate, Templater } from './utils/templater';
-import { INotifier, Notifier } from './notifiers/notifier';
-import { ITriggerNotifier } from './utils/triggers';
+import { Template } from './utils/templates';
 
 export class EventMonitor {
-  private config: Config;
-  private refreshInterval: number;
-  private tar1090: Tar1090;
-  private radar: Radar;
-  private isFirstIteration: Boolean;
+  private config: IConfig;
   private logger: Logger;
+  private radar: Radar;
+  private tar1090: Tar1090;
+  private iterationCount: number;
+  private triggers: Trigger[];
 
-  constructor(config: Config, logger: Logger) {
+  constructor(config: IConfig, logger: Logger) {
     this.config = config;
     this.logger = logger;
 
-    this.tar1090 = new Tar1090(this.config.data_source.base, this.logger);
-    this.radar = new Radar(this.config.forget_after_intervals, this.logger);
+    this.tar1090 = new Tar1090(config.data_source.base, logger);
+    this.radar = new Radar(config.forget_after_intervals, logger);
 
-    this.refreshInterval = this.config.refresh_interval;
-    this.isFirstIteration = true;
+    this.triggers = [];
+
+    this.iterationCount = 0;
+
+    this.setupTriggers();
   }
 
-  // Function to evaluate the expression safely
-  evaluateExpression(data: any, expression: string): boolean {
-    const func = new Function('aircraft', `return ${expression}`);
-    return func(data);
+  private setupTriggers() {
+    this.config.triggers.forEach(conftrig => {
+      const trigRules: Rule[] = [];
+      const trigNoti: ITriggerNotifier[] = [];
+
+      conftrig.rules.forEach(rule => {
+        switch (rule.type) {
+          case 'eval':
+            trigRules.push(new RuleEval(rule as IRuleEval))
+            break;
+          default:
+            break;
+        }
+      })
+
+      conftrig.notifiers.forEach(noti => {
+        const notiName = noti.name
+        const notiNotifier = this.config.notifiers.find(n => n.name == noti.name) as IConfig_Notifier
+        switch (notiNotifier.type) {
+          case 'telegram':
+            let newNotifier = new TelegramNotifier(notiNotifier as ITelegramNotifier, this.logger)
+            const notiTemplate = this.config.templates.find(t => t.name == noti.template) as IConfig_Template
+            let newTemplate = new Template(notiTemplate.name, notiTemplate.format)
+            trigNoti.push({
+              notifier: newNotifier,
+              template: newTemplate
+            } as ITriggerNotifier)
+            break;
+          default:
+            break;
+        }
+      })
+
+      const newtrigger = new Trigger({
+        name: conftrig.name,
+        rules: trigRules,
+        notifiers: trigNoti,
+      })
+      this.triggers.push(newtrigger)
+    })
   }
 
   async monitorEvents() {
     // update radar
     const aircraftData = await this.tar1090.fetchAircraftData();
-    this.radar.updateRadar(aircraftData.aircraft)
+    this.radar.updateRadar(aircraftData.aircraft);
 
     // skip checking triggers if this is the first run
-    if (this.isFirstIteration) {
-      this.isFirstIteration = false;
-      return;
-    }
+    if (this.iterationCount == 0) { this.iterationCount++; return; };
 
-    // for each aircraft from radar
+    // loop through each aircraft
     this.radar.getActiveAircraft().forEach(aircraft => {
-      // for each trigger
-      this.config.triggers.forEach((trigger) => {
-        let result = true;
+      // run each trigger against aircraft
+      this.triggers.forEach( trigger => {
+        // evaluate rules
+        const triggerResults: ITriggerResults = trigger.evaluate({aircraft});
+        if( triggerResults.results == true ) {
+          trigger.notifiers.forEach(notifier => {
+            // process message template
+            let msg = notifier.template.process({aircraft})
 
-        // Rules
-        const rules = new Rules();
-        trigger.rules.forEach((rule: IRule, index: number) => {
-          rules.addRule({type: rule.type, expression: rule.expression});
-        })
+            // Notify
+            this.logger.info(`New EVENT - ${trigger.name} - ${aircraft.hex} ${aircraft.r} ${aircraft.t}`, "event-monitor")
+            notifier.notifier.sendMessage({message: msg})
+          })
+        }
+      })
+    })
 
-        result = rules.evaluateAllExpressions(aircraft)
-        // return if expressions evaluate to false
-        if (result === false) return;
-        
-        // for each notifier
-        trigger.notifiers.forEach((triggerNotifier: ITriggerNotifier ) => {
-          const template:ITemplate = this.config.templates.find((tp) => tp.name == triggerNotifier.template) as ITemplate
-          let templater = new Templater(template.name, template.format);
-
-          const message = templater.process({aircraft});
-
-          this.logger.info(`template: ${templater.name} data: ${message}`, "event");
-          let notifier: Notifier = {} as Notifier
-          
-          const inotifier:INotifier = this.config.notifiers.find((n) => n.name == triggerNotifier.name) as INotifier;
-          switch(inotifier.type) {
-            case "telegram":
-              notifier = new TelegramNotifier(inotifier as ITelegramNotifier, this.logger)
-          }
-          //const notifier = new TelegramNotifier(inotifier);
-          notifier?.sendMessage({message: message})
-        })
-      });
-
-    });
-  }
-
-  getRefreshInterval(): number {
-    return this.refreshInterval * 1000; // Convert seconds to milliseconds
+    this.iterationCount++;
   }
 }

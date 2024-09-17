@@ -1,4 +1,4 @@
-import { Config } from './config';
+import { IConfig } from './config';
 
 import { Logger as WLogger, createLogger, transports, format, LogCallback } from 'winston';
 
@@ -6,7 +6,7 @@ import { Logger as WLogger, createLogger, transports, format, LogCallback } from
 export class Logger {
     private winstonLogger: WLogger;
 
-    constructor(config: Config) {
+    constructor(config: IConfig) {
         const level:string = process.env.LOG_LEVEL || config.log_level || 'info';
         const logFileName = `./logs/airspacealert-${Date.now()}.log`
 
