@@ -1,17 +1,28 @@
 import axios from 'axios';
-import { Notifier } from './notifier';
+import { INotifier, Notifier } from './notifier';
+import { Logger } from '../utils/logger';
 
-export class TelegramNotifier implements Notifier {
+export interface ITelegramNotifier extends INotifier {
+  chat_id: string
+  message_thread_id?: string
+  api_key: string
+}
+
+export class TelegramNotifier implements ITelegramNotifier {
+  name: string
   type: string
   chat_id: string
-  message_thread_id: string
+  message_thread_id?: string
   api_key: string
+  private logger: Logger;
 
-  constructor(api_key: string, chat_id: string, message_thread_id: string) {
-    this.type = "telegram";
-    this.api_key = api_key;
-    this.chat_id = chat_id;
-    this.message_thread_id = message_thread_id;
+  constructor(data: ITelegramNotifier, logger: Logger) {
+    this.name = data.name
+    this.type = data.type;
+    this.api_key = data.api_key;
+    this.chat_id = data.chat_id;
+    this.message_thread_id = data.message_thread_id;
+    this.logger = logger;
   }
 
   // Method to send a notification message
@@ -19,14 +30,22 @@ export class TelegramNotifier implements Notifier {
     const url = `https://api.telegram.org/bot${this.api_key}/sendMessage`;
 
     try {
-      const response = await axios.post(url, {
-        chat_id: this.chat_id,
-        message_thread_id: this.message_thread_id,
-        text: data.message,
-      });
-      console.log(`Telegram message sent: ${response.data.ok}`);
+      if (this.message_thread_id) {
+        const response = await axios.post(url, {
+          chat_id: this.chat_id,
+          message_thread_id: this.message_thread_id,
+          text: data.message,
+        });
+        console.info(`Telegram message sent: ${response.data.ok}`);
+      } else {
+        const response = await axios.post(url, {
+          chat_id: this.chat_id,
+          text: data.message,
+        });
+        this.logger.info(`Telegram message sent: ${response.data.ok}`, 'telegram-notifier');
+      }
     } catch (error) {
-      console.error('Error sending message to Telegram:', error);
+      this.logger.error(`Error sending message to Telegram: ${error}`, 'telegram-notifier');
     }
   }
 }

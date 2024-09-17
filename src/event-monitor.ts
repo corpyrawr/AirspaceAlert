@@ -3,7 +3,7 @@
 import { Config } from './utils/config';
 import { Tar1090 } from './data-sources/tar1090';
 import { Radar } from './radar';
-import { TelegramNotifier } from './notifiers/telegram';
+import { ITelegramNotifier, TelegramNotifier } from './notifiers/telegram';
 import { Logger } from './utils/logger'
 import { Rule, IRule, Rules } from './utils/rules';
 import { ITemplate, Templater } from './utils/templater';
@@ -58,8 +58,9 @@ export class EventMonitor {
           rules.addRule({type: rule.type, expression: rule.expression});
         })
 
+        result = rules.evaluateAllExpressions(aircraft)
         // return if expressions evaluate to false
-        if (rules.evaluateAllExpressions(aircraft) == false) return;
+        if (result === false) return;
         
         // for each notifier
         trigger.notifiers.forEach((triggerNotifier: ITriggerNotifier ) => {
@@ -69,10 +70,15 @@ export class EventMonitor {
           const message = templater.process({aircraft});
 
           this.logger.info(`template: ${templater.name} data: ${message}`, "event");
-
-          const inotifier:INotifier = this.config.notifiers.find((n) => n.type == triggerNotifier.type) as INotifier;
-          const notifier = new TelegramNotifier(inotifier.api_key, inotifier.chat_id, inotifier.message_thread_id);
-          notifier.sendMessage({message: message})
+          let notifier: Notifier = {} as Notifier
+          
+          const inotifier:INotifier = this.config.notifiers.find((n) => n.name == triggerNotifier.name) as INotifier;
+          switch(inotifier.type) {
+            case "telegram":
+              notifier = new TelegramNotifier(inotifier as ITelegramNotifier, this.logger)
+          }
+          //const notifier = new TelegramNotifier(inotifier);
+          notifier?.sendMessage({message: message})
         })
       });
 

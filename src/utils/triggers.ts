@@ -2,7 +2,7 @@ import { INotifier } from "../notifiers/notifier";
 import { IRule } from "./rules";
 
 export interface ITriggerNotifier {
-    type: string,
+    name: string,
     template: string
 }
 

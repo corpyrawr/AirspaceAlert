@@ -1,8 +1,6 @@
 export interface INotifier {
-    type: string,
-    chat_id: string,
-    message_thread_id: string,
-    api_key: string
+    name: string,
+    type: string
 }
 
 export interface Notifier extends INotifier {
