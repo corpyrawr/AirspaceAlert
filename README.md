@@ -1,7 +1,7 @@
 # AirspaceAlert
 ## Early WIP
 
-AirspaceAlert is a TypeScript-based project designed to monitor air traffic data from a data source (such as tar1090) and trigger notifications when specific aircraft events occur. Notifications are sent via platforms like Telegram based on user-configured rules and templates.
+AirspaceAlert is a TypeScript-based project designed to monitor air traffic data from a data source (such as tar1090) and trigger notifications when specific aircraft events occur. Notifications are sent via platforms like Telegram, Discord, and web-hooks based on user-configured rules and templates.
 
 ## Features
 - **Configurable Data Sources:** Monitor aircraft data from sources like tar1090.
