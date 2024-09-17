@@ -1,0 +1,36 @@
+log_level: debug
+
+forget_after_intervals: 5
+refresh_interval: 5
+
+data_source:
+  type: tar1090
+  base: http://<IP>:8080/data/aircraft.json
+
+notifiers:
+  - type: telegram
+    chat_id: 
+    message_thread_id: 
+    api_key: 
+
+templates:
+  - name: entered_airspace_template
+    format: "Aircraft Type ${aircraft['t']} entered the airspace, reg ${aircraft['r']}, flight ${aircraft['flight']}, squawk ${aircraft['squawk']}"
+  - name: squawk7700_template
+    format: "reg ${aircraft['r']}, flight ${aircraft['flight']} Squawked 7700"
+
+triggers:
+  - name: entered_airspace
+    rules:
+      - type: eval
+        expression: (['A388','GLEX','H47','GLF4','GA6C','GL7T','R135','GLF6','IL76','GL5T','A310','K35R','C130','FA7X','FA8X','C30J','P8','C27J'].some(e => e == aircraft['t'])) && aircraft["isNew"] == true
+    notifiers:
+      - type: telegram
+        template: "entered_airspace_template"
+  - name: squawk7700
+    rules:
+      - type: eval
+        expression: aircraft["squawk"] == "7700"
+    notifiers:
+      - type: telegram
+        template: "squawk7700_template"

@@ -1,0 +1,26 @@
+{
+  "name": "airspacealert",
+  "displayName": "AirspaceAlert",
+  "version": "1.0.6",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node ./build/index.js",
+    "copy-config": "xcopy .\\config\\* .\\build\\ /S /Y",
+    "dev": "npm run build && npm run copy-config && node ./build/index.js",
+    "docker-build": "docker build --tag corpusgrr/airspace-alert:latest .",
+    "docker-push": "docker push corpusgrr/airspace-alert:latest"
+  },
+  "author": "CorpyRawr",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@types/yamljs": "^0.2.34",
+    "axios": "^1.7.7",
+    "typescript": "^5.6.2",
+    "winston": "^3.14.2",
+    "yamljs": "^0.3.0"
+  }
+}
