@@ -3,7 +3,7 @@ export interface ITemplate {
     format: string
 }
 
-export class Templater implements ITemplate {
+export class Template implements ITemplate {
     name: string
     format: string
 

@@ -1,19 +1,21 @@
 import axios from 'axios';
 import {Logger} from '../utils/logger'
-import { AircraftData, DataSource } from './datasource';
+import { AircraftData, DataSource } from './datasources';
 
 export class Tar1090 implements DataSource {
-  private baseUrl: string;
   private logger: Logger;
+  type: string;
+  base: string;
 
-  constructor(baseUrl: string, logger: Logger) {
-    this.baseUrl = baseUrl;
+  constructor(base: string, logger: Logger) {
+    this.base = base;
+    this.type = "tar1090"
     this.logger = logger;
   }
 
   async fetchAircraftData(): Promise<AircraftData> {
     try {
-      const response = await axios.get(this.baseUrl);
+      const response = await axios.get(this.base);
       return response.data;
     } catch (error) {
       this.logger.error(`Error fetching aircraft data: ${error}`, "tar1090");
