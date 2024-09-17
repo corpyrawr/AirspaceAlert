@@ -19,7 +19,7 @@ AirspaceAlert is a TypeScript-based project designed to monitor air traffic data
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/AirspaceAlert.git
+git clone https://github.com/corpyrawr/AirspaceAlert.git
 cd AirspaceAlert
 ```
 
