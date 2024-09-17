@@ -14,7 +14,7 @@ AirspaceAlert is a TypeScript-based project designed to monitor air traffic data
 - Node.js (v14+ recommended)
 - Yarn or npm for package management
 
-## installation
+## Installation
 Clone the repository:
 
 ```bash
