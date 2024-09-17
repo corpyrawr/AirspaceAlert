@@ -2,10 +2,6 @@
 import { loadConfig } from './utils/config';
 import { EventMonitor } from './event-monitor';
 import { Logger } from './utils/logger';
-import { Tar1090 } from './data-sources/tar1090';
-import { Radar } from './radar';
-
-
 
 async function main() {
     const pjson = require('../package.json');
@@ -27,10 +23,5 @@ async function main() {
 
     }, config.refresh_interval * 1000)
 }
-
-async function loop(){
-    
-}
-
 
 main().catch(console.error);
