@@ -1,5 +1,6 @@
 # AirspaceAlert
 ## Early WIP
+[![Docker](https://github.com/corpy-rawr/AirspaceAlert/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/corpy-rawr/AirspaceAlert/actions/workflows/docker-publish.yml)
 
 AirspaceAlert is a TypeScript-based project designed to monitor air traffic data from a data source (such as tar1090 for ads-b) and trigger notifications when specific aircraft events occur. Notifications are sent via platforms like Telegram, Discord, and web-hooks based on user-configured rules and templates.
 
