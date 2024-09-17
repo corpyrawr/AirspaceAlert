@@ -1,4 +1,4 @@
-log_level: debug
+log_level: info
 
 forget_after_intervals: 5
 refresh_interval: 5
