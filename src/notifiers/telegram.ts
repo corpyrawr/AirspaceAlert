@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { INotifier, Notifier } from './notifiers';
+import { INotifier } from './notifiers';
 import { Logger } from '../utils/logger';
 
 export interface ITelegramNotifier extends INotifier {

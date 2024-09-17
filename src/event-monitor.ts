@@ -1,5 +1,6 @@
 import { Tar1090 } from './data-sources/tar1090';
 import { ITelegramNotifier, TelegramNotifier } from './notifiers/telegram';
+import { IWebhookNotifier, WebhookNotifier } from './notifiers/webhook';
 import { Radar } from './radar';
 import { IRuleEval, RuleEval } from './rules/eval';
 import { Rule } from './rules/rules';
@@ -48,13 +49,22 @@ export class EventMonitor {
       conftrig.notifiers.forEach(noti => {
         const notiName = noti.name
         const notiNotifier = this.config.notifiers.find(n => n.name == noti.name) as IConfig_Notifier
+
+        const notiTemplate = this.config.templates.find(t => t.name == noti.template) as IConfig_Template
+        let newTemplate = new Template(notiTemplate.name, notiTemplate.format)
+        
         switch (notiNotifier.type) {
           case 'telegram':
-            let newNotifier = new TelegramNotifier(notiNotifier as ITelegramNotifier, this.logger)
-            const notiTemplate = this.config.templates.find(t => t.name == noti.template) as IConfig_Template
-            let newTemplate = new Template(notiTemplate.name, notiTemplate.format)
+            let newTeliNotifier = new TelegramNotifier(notiNotifier as ITelegramNotifier, this.logger)
             trigNoti.push({
-              notifier: newNotifier,
+              notifier: newTeliNotifier,
+              template: newTemplate
+            } as ITriggerNotifier)
+            break;
+          case 'webhook':
+            let newWebhookNotifier = new WebhookNotifier(notiNotifier as IWebhookNotifier, this.logger)
+            trigNoti.push({
+              notifier: newWebhookNotifier,
               template: newTemplate
             } as ITriggerNotifier)
             break;
@@ -68,6 +78,7 @@ export class EventMonitor {
         rules: trigRules,
         notifiers: trigNoti,
       })
+      this.logger.debug(`Created Trigger: ${conftrig.name}, Rules: ${trigRules.length}, Notifiers: ${trigNoti.length}`,"event-monitor")
       this.triggers.push(newtrigger)
     })
   }
@@ -93,7 +104,7 @@ export class EventMonitor {
 
             // Notify
             this.logger.info(`New EVENT - ${trigger.name} - ${aircraft.hex} ${aircraft.r} ${aircraft.t}`, "event-monitor")
-            notifier.notifier.sendMessage({message: msg})
+            notifier.notifier.sendMessage({message: msg, data: {aircraft}})
           })
         }
       })

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {Logger} from '../utils/logger'
+import { Logger } from '../utils/logger'
 import { AircraftData, DataSource } from './datasources';
 
 export class Tar1090 implements DataSource {

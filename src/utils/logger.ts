@@ -25,6 +25,9 @@ export class Logger {
             )
         })
         this.debug(`Logs saved to file: ${logFileName}`, "logger")
+		console.log = (message: any, params?: any) => {
+			this.winstonLogger.debug(message, params);
+		};
     }
 
     silly(message: string, source: string)  { this.winstonLogger.silly(message, {source: source}) }
@@ -34,5 +37,5 @@ export class Logger {
     info(message: string, source: string)   { this.winstonLogger.info(message, {source: source}) }
     warn(message: string, source: string)   { this.winstonLogger.warn(message, {source: source}) }
     error(message: string, source: string)  { this.winstonLogger.error(message, {source: source}) }
-
 }
+

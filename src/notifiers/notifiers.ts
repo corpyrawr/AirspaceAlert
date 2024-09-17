@@ -4,5 +4,5 @@ export interface INotifier {
 }
 
 export interface Notifier extends INotifier {
-    sendMessage(data: {message:string}): Promise<void>;
+    sendMessage(data: {message:string, data?: {}}): Promise<void>;
 }
