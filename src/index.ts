@@ -1,4 +1,3 @@
-//import { createLogger, transports, format } from "winston";
 import { loadConfig } from './utils/config';
 import { EventMonitor } from './event-monitor';
 import { Logger } from './utils/logger';
