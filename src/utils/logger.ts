@@ -1,6 +1,6 @@
 import { IConfig } from './config';
 
-import { Logger as WLogger, createLogger, transports, format, LogCallback } from 'winston';
+import { Logger as WLogger, createLogger, transports, format } from 'winston';
 
 
 export class Logger {
